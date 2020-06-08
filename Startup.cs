@@ -30,7 +30,11 @@ namespace TransportBE
             services.AddTransient<ITransportRepository, TransportRepository>();
             services.AddTransient<CommandText, CommandText>();
 
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.ReturnHttpNotAcceptable = true;
+                options.EnableEndpointRouting = false;
+            });
             services.AddControllers();
             services.Configure<ConnectionConfig>(Configuration.GetSection("ConnectionStrings"));
             services.AddTokenAuthentication(Configuration);
@@ -54,7 +58,7 @@ namespace TransportBE
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseMvc(routes => { routes.MapRoute(name: "default", template: "{controller=Home}/{action=Index}"); });
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

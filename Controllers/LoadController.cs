@@ -25,7 +25,7 @@ namespace TransportBE.Controllers
         }
 
         [HttpGet]
-        [Route("client/{nOrderId}")]
+        [Route("client/orderid/{nOrderId}")]
         public ActionResult<Load> GetLoadsByOrderId(decimal nOrderId)
         {
             var product = _transportRepository.GetLoadsByOrderId(nOrderId);
@@ -43,9 +43,21 @@ namespace TransportBE.Controllers
 
         [HttpPut]
         [Route("shipper/assign_to_load")]
-        public void AssignLoad(Load entity)
+        public ActionResult<Load> AssignLoad(Load entity)
         {
-             _transportRepository.AssignLoad(entity);            
+            int fail = _transportRepository.AssignLoad(entity);
+
+            if (fail == 0)
+            {
+                var response = Ok(new { entity, success = true, info = "This trip is now assigned to you" });
+                return response;
+            }
+            else
+            {
+                var response = Ok(new { entity, success = false, info = "This Trip is no longer available or has already been undertaken" });
+                return response;
+            }
+                      
         }
     }
 }

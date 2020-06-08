@@ -38,9 +38,8 @@
 //            return Ok(product);
 //        }
 
-//        // POST: api/Shipper
+//        
 //        [AllowAnonymous]
-//        //[HttpPost("authenticate")]
 //        [HttpPost("register")]
 //        public async Task<IActionResult> ShipperRegister([FromBody]ShipperRegister model)
 //        {

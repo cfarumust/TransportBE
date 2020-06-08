@@ -58,12 +58,37 @@ namespace TransportBE.Controllers
             var token = new JwtSecurityToken(_config["JwtSettings:Issuer"],
               _config["JwtSettings:Issuer"],
               null,
-              expires: DateTime.Now.AddMinutes(120),
+              expires: DateTime.Now.AddDays(7),
               signingCredentials: credentials);
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<IActionResult> Shipper([FromBody] Shipper model)
+        {
+            Boolean _UserExists;
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
+            model.sUserName = model.sUserName.ToLower();
+
+            if (_transportRepository.CheckClientUsernameExists(model.sUserName) != null)
+            {
+                _UserExists = true;
+                //HttpStatusCode codeNotDefined = (HttpStatusCode)422;
+                //return Content(codeNotDefined, "message to be sent in response body");
+                return BadRequest("Username is already taken");
+
+            }
+            else
+            {
+                _transportRepository.ShipperRegister(model);
+
+                return Ok();
+            }
+
+        }
     }
 }

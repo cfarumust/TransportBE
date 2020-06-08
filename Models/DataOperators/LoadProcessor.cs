@@ -20,6 +20,8 @@ namespace TransportBE.Models.DataOperators
             double dropLatitude =    (double)order.NDROPLAT;
             double dropLongitude =   (double)order.NDROPLONG;
 
+            List<Load> GeneratedLoads = new List<Load>();
+            List<Cell> hops = new List<Cell>();
 
             var locationService = new GoogleLocationService(gMapsApiKey);
 
@@ -29,24 +31,25 @@ namespace TransportBE.Models.DataOperators
             var DropLocation = locationService.GetAddressFromLatLang(dropLatitude, dropLongitude);
             string destination = DropLocation.City.ToString();
 
-
-
-
-            
-
             List<City> places = new List<City>();
             
 
             string sourceid = GridProcessor.GetGridIdOfCity(source);
             string destid = GridProcessor.GetGridIdOfCity(destination);
+            if ((sourceid == "NOK" ) || (destid == "NOK")) 
+            {
+                
+                return GeneratedLoads;
+            }
+                
+            
             City originCity = new City { sCityName = source, sGridId = sourceid };
             City destCity = new City { sCityName = destination, sGridId = destid };
 
             places.Add(originCity);
 
 
-            List<Load> GeneratedLoads = new List<Load>();
-            List<Cell> hops = new List<Cell>();
+            
             //Will get distance from Order
             decimal distance = order.NDISTANCE;
 
@@ -59,6 +62,7 @@ namespace TransportBE.Models.DataOperators
 
             if (distance < 300)
             {
+                places.Add(destCity);
                 if (BoxCount > MaxBoxCount)
                 {
                     int trip = 0;
@@ -120,104 +124,111 @@ namespace TransportBE.Models.DataOperators
                 //    a++;
                 //}*/
             }
-
-                int trips = hopCount + 1;
-                int boxesAllocatedTovehicles = 0;
-                int totalVehiclesRequred = vehiclesRequired * 2;
-                
-               
-               
-
-                //list out  hop points
-                List<String> hopPointsCitys = new List<string>();
-
-                
-
-                List<City>[] AllHopCities = new List<City>[hopCount];
-                int a = 0;
-                foreach (Cell cell in hops)
+                if (hops.Count != 0) 
                 {
-
-                    string idx = cell.x.ToString();
-                    string idy = cell.y.ToString();
-
-                    string HopCellId = idx + idy;
-                    AllHopCities[a] = GridProcessor.GetCitiesInGridCell(HopCellId);
-                    a++;
-                }
-
-                List<string> usedCell = new List<string>();
+                    int trips = hopCount + 1;
+                    int boxesAllocatedTovehicles = 0;
+                    int totalVehiclesRequred = vehiclesRequired * 2;
 
 
-                //Hops
-                for (int i =0; i< hopCount; i++) 
-                {
 
-                    foreach (City city in AllHopCities[i])
+
+                    //list out  hop points
+                    List<String> hopPointsCitys = new List<string>();
+
+
+
+                    List<City>[] AllHopCities = new List<City>[hopCount];
+                    int a = 0;
+                    foreach (Cell cell in hops)
                     {
-                        if (!usedCell.Contains(city.sGridId))
-                        {
-                            usedCell.Add(city.sGridId);
-                            places.Add(city);
-                        }
+
+                        string idx = cell.x.ToString();
+                        string idy = cell.y.ToString();
+
+                        string HopCellId = idx + idy;
+                        AllHopCities[a] = GridProcessor.GetCitiesInGridCell(HopCellId);
+                        a++;
                     }
 
-                }
-                
+                    List<string> usedCell = new List<string>();
 
-                places.Add(destCity);
 
-               
-                if (BoxCount > MaxBoxCount)
-                {
-                    //generate trips 
-                    for (int trip=0; trip < trips; trip++)
+                    //Hops
+                    for (int i = 0; i < hopCount; i++)
                     {
-                        //load per vehicle
 
-                        for (int i = 1; i <= vehiclesRequired; i++)
+                        foreach (City city in AllHopCities[i])
+                        {
+                            if (!usedCell.Contains(city.sGridId))
+                            {
+                                usedCell.Add(city.sGridId);
+                                places.Add(city);
+                            }
+                        }
+
+                    }
+
+
+                    places.Add(destCity);
+
+
+                    if (BoxCount > MaxBoxCount)
+                    {
+                        //generate trips 
+                        for (int trip = 0; trip < trips; trip++)
+                        {
+                            //load per vehicle
+
+                            for (int i = 1; i <= vehiclesRequired; i++)
+                            {
+                                Load load = new Load
+                                {
+                                    NORDERID = id,
+                                    NBOXCOUNT = boxesPerVehicle,
+                                    NBOXID = order.NBOXID,
+                                    SADDRESSPICKUP = places[trip].sCityName,
+                                    SADDRESSDROP = places[trip + 1].sCityName,
+                                    NLEGID = trip,
+                                    NISMULTIVEHICLELOAD = i,
+                                    SGRIDIDPICKUP = places[trip].sGridId,
+                                    SGRIDIDDROP = places[trip + 1].sGridId
+
+                                };
+
+                                GeneratedLoads.Add(load);
+                                //boxesAllocatedTovehicles += boxesPerVehicle;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int trip = 0; trip < trips; trip++)
                         {
                             Load load = new Load
                             {
                                 NORDERID = id,
-                                NBOXCOUNT = boxesPerVehicle,
+                                NBOXCOUNT = order.NBOXCOUNT,
                                 NBOXID = order.NBOXID,
                                 SADDRESSPICKUP = places[trip].sCityName,
                                 SADDRESSDROP = places[trip + 1].sCityName,
                                 NLEGID = trip,
-                                NISMULTIVEHICLELOAD=i,
-                                SGRIDIDPICKUP = places[trip].sGridId, 
-                                SGRIDIDDROP=places[trip + 1].sGridId
+                                NISMULTIVEHICLELOAD = 1,
+                                SGRIDIDPICKUP = places[trip].sGridId,
+                                SGRIDIDDROP = places[trip + 1].sGridId
 
                             };
-
                             GeneratedLoads.Add(load);
-                           //boxesAllocatedTovehicles += boxesPerVehicle;
                         }
                     }
                 }
                 else
                 {
-                    for (int trip = 0; trip < trips; trip++)
-                    {
-                        Load load = new Load
-                        {
-                            NORDERID = id,
-                            NBOXCOUNT = order.NBOXCOUNT,
-                            NBOXID = order.NBOXID,
-                            SADDRESSPICKUP = places[trip].sCityName,
-                            SADDRESSDROP = places[trip + 1].sCityName,
-                            NLEGID = trip,
-                            NISMULTIVEHICLELOAD = 1,
-                            SGRIDIDPICKUP = places[trip].sGridId,
-                            SGRIDIDDROP = places[trip + 1].sGridId
-
-                        };
-                        GeneratedLoads.Add(load);
-                    }
+                    return GeneratedLoads;
                 }
+                
 
-                }
+            }
 
             return GeneratedLoads;
         }

@@ -18,8 +18,9 @@ namespace TransportBE.Models.DataOperators
         private const string gMapsApiKey = "AIzaSyBeCFketdO1G0mIkVJRbpos_JvYROwxV_k";
         public static List<Cell> GenerateHopsForTrip(double pickUpLatitude, double pickUpLongitude, double dropLatitude, double dropLongitude) 
         {
-            List<GeoTag> listOfHops = new List<GeoTag>();
-            List<City> HopCities = new List<City>();
+         
+            List<Cell> listOfWaypoints = new List<Cell>();
+            List<Cell> listofHopsIds = new List<Cell>();
 
             var locationService = new GoogleLocationService(gMapsApiKey);
             
@@ -29,7 +30,10 @@ namespace TransportBE.Models.DataOperators
             var DropLocation = locationService.GetAddressFromLatLang(dropLatitude, dropLongitude);
             string destinationCity = DropLocation.City.ToString();
 
-
+            if ((sourceCity == "NOK") || (destinationCity == "NOK")) 
+            {
+                return listofHopsIds;
+            }
 
             string sourceGridId = GetGridIdOfCity(sourceCity);
             string destinationGridId = GetGridIdOfCity(destinationCity);
@@ -40,8 +44,7 @@ namespace TransportBE.Models.DataOperators
             char destX = destinationGridId[0];
             char destY = destinationGridId[1];
 
-            List<Cell> listOfWaypoints = new List<Cell>();
-            List<Cell> listofHopsIds = new List<Cell>();
+            
 
             listOfWaypoints = GetWaypoints(originX, originY, destX, destY);
             listofHopsIds = GetHopIds(listOfWaypoints);
@@ -89,8 +92,9 @@ namespace TransportBE.Models.DataOperators
         private static string GetGridIdOfCity(string City)
         {
             string cityId = GridProcessor.GetGridIdOfCity(City);
-            return cityId; 
-            
+            if(cityId != "NOK")
+                return cityId;
+            return "NOK";
         }
 
         private static List<Cell> GetWaypoints(char originX, char originY, char destX, char destY) 

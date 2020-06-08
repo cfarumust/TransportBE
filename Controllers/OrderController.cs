@@ -25,10 +25,18 @@ namespace TransportBE.Controllers
 
 
         [HttpGet]
-        [Route("{nClientId}")]
+        [Route("client/{nClientId}")]
         public ActionResult<Order> GetOrdersByClient(decimal nClientId)
         {
             var product = _transportRepository.GetOrdersByClient(nClientId);
+            return Ok(product);
+        }
+
+        [HttpGet]
+        [Route("route/{nOrderId}")]
+        public ActionResult<Waypoint> GetOrderRouteWithWayPoints(decimal nOrderId)
+        {
+            var product = _transportRepository.GetOrderRouteWithWayPoints(nOrderId);
             return Ok(product);
         }
 
@@ -36,8 +44,19 @@ namespace TransportBE.Controllers
         [HttpPost] 
         public ActionResult PostOrder(Order entity)
         {
-           _transportRepository.PostOrder(entity);
-            return Ok(entity);
+           int fail = _transportRepository.PostOrder(entity);
+            
+            if (fail == 0) 
+            {
+                var response = Ok(new { entity, success = true, info = "Order placed" });
+                return response;
+            }
+            else 
+            {
+                var response = Ok(new { entity, success = false, info = "Service not available in this area. Please contact Support." });
+                return response;
+            }
+            
         }
 
         

@@ -26,7 +26,7 @@ namespace TransportBE.Models.DataOperators
     {        
 
         internal const string connStr = "Server=ATS007;Database=transport;User Id=qsys; Password=qsys;";
-        internal static string GetGridIdOfCitySql => "select SGRIDID from CITIES where SCITYNAME = @sCityName";
+        internal static string GetGridIdOfCitySql => "select TOP 1 SGRIDID from CITIES where SCITYNAME = @sCityName and SGRIDID != '99'";
         internal static string GetCitiesInGridCellSql => "select SCITYNAME, SGRIDID from CITIES where SGRIDID = @sGridId";
 
 
@@ -54,7 +54,13 @@ namespace TransportBE.Models.DataOperators
         {
             var gridId = ExecuteCommand<string>(connStr, conn =>
                  conn.Query<string>(GetGridIdOfCitySql, new { @sCityName = cityName }).SingleOrDefault());
-            return gridId.ToString();
+            if (gridId != null) 
+            {
+                return gridId.ToString();
+            }                
+            return "NOK";
+            
+            
         }
 
         internal static  List<City> GetCitiesInGridCell(string gridId)

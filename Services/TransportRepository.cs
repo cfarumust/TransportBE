@@ -17,12 +17,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using TransportBE.Controllers;
 using TransportBE.Models.DataOperators;
 using System.Web.WebPages;
+using GoogleMaps.LocationServices;
 
 
 namespace TransportBE.Services
 {
     public class TransportRepository : ITransportRepository
     {
+        private const string gMapsApiKey = "AIzaSyBeCFketdO1G0mIkVJRbpos_JvYROwxV_k";
+
         private readonly CommandText _commandText;
         private readonly string _connStr;
         private readonly AppSettings _appSettings;
@@ -56,10 +59,11 @@ namespace TransportBE.Services
 
         
 
-        public  void PostOrder(Order entity)
+        public  int PostOrder(Order entity)
         {
+            var locationService = new GoogleLocationService(gMapsApiKey);
             List<Load> loadList;
-            using (var connection = new SqlConnection(_connStr)) 
+            using (var connection = new SqlConnection(_connStr))
             {
                 connection.Open();
                 Order currentOrder = new Order
@@ -67,38 +71,111 @@ namespace TransportBE.Services
                     DTPICKUPDATE = entity.DTPICKUPDATE,
                     DTDROPDATE = entity.DTDROPDATE,
                     NCLIENTID = entity.NCLIENTID,
-                    sAddressPickUp = entity.sAddressPickUp,
-                    sAddressDrop = entity.sAddressDrop,
+                    SADDRESSPICKUP = entity.SADDRESSPICKUP,
+                    SADDRESSDROP = entity.SADDRESSDROP,
                     NBOXID = entity.NBOXID,
                     NBOXCOUNT = entity.NBOXCOUNT,
-                    NDISTANCE = entity.NDISTANCE,  
-                    NPICKUPLAT  =entity.NPICKUPLAT, 
-                    NPICKUPLONG =entity.NPICKUPLONG,
-                    NDROPLAT    =entity.NDROPLAT,   
-                    NDROPLONG   =entity.NDROPLONG
+                    NDISTANCE = entity.NDISTANCE,
+                    NPICKUPLAT = entity.NPICKUPLAT,
+                    NPICKUPLONG = entity.NPICKUPLONG,
+                    NDROPLAT = entity.NDROPLAT,
+                    NDROPLONG = entity.NDROPLONG
                 };
 
                 var insertedId = connection.Query<int>(_commandText.PostOrder, currentOrder).First();
 
                 int id = (int)insertedId;
                 loadList = LoadProcessor.GenerateLoadsFromOrder(id, currentOrder);
+                if(loadList.Count == 0)
+                {
+                    double pickUpLatitude = (double)currentOrder.NPICKUPLAT;
+                    double pickUpLongitude = (double)currentOrder.NPICKUPLONG;
+                    double dropLatitude = (double)currentOrder.NDROPLAT;
+                    double dropLongitude = (double)currentOrder.NDROPLONG;
+                    
+                    
 
+                    var PickUpLocation = locationService.GetAddressFromLatLang(pickUpLatitude, pickUpLongitude);
+                    string source = PickUpLocation.City.ToString();
+
+                    var DropLocation = locationService.GetAddressFromLatLang(dropLatitude, dropLongitude);
+                    string destination = DropLocation.City.ToString();
+
+                    InsertUnknownCity(source);
+                    InsertUnknownCity(destination);
+                    SetOrderStatusToGridUnknown(id);
+                    
+                    return 1;
+                }
+                List<decimal> insertedLegs = new List<decimal>();
+
+                int LoadId = 99999999;
+                decimal leg = 99;
                 foreach (Load genLoad in loadList)
                 {
                     ExecuteCommand(_connStr, conn =>
                     {
-                        var query = conn.Query<Load>(_commandText.PostLoad, genLoad);
+                        var insertedLoadId = connection.Query<int>(_commandText.PostLoad, genLoad).First();
+                        LoadId = insertedId;
+                        
+
                     });
-                }                
-            }           
+                    
+
+                    var Location = locationService.GetLatLongFromAddress(genLoad.SADDRESSPICKUP + ", Germany");
+                    double latitude = Location.Latitude;
+                    double longitude = Location.Longitude;
+
+                    if (!insertedLegs.Contains(genLoad.NLEGID)) 
+                    {
+                        insertedLegs.Add(genLoad.NLEGID);
+                        Waypoint waypoint = new Waypoint
+                        {
+                            NORDERID = id,
+                            NLEGID = genLoad.NLEGID,
+                            NLAT = (decimal)latitude,
+                            NLONG = (decimal)longitude,
+                            NLOADID = LoadId
+                        };
+                        leg = genLoad.NLEGID;
+                        ExecuteCommand(_connStr, conn =>
+                        {
+                            var query = connection.Query<Waypoint>(_commandText.PostWaypoint, waypoint);
+                        });
+                    }
+                    
+
+                }
+                var dropLocation = locationService.GetLatLongFromAddress(currentOrder.SADDRESSDROP + ", Germany");
+                double droplatitude = dropLocation.Latitude;
+                double droplongitude = dropLocation.Longitude;
+                Waypoint dropwaypoint = new Waypoint
+                {
+                    NORDERID = id,
+                    NLEGID = (leg + 1),
+                    NLAT = (decimal)droplatitude,
+                    NLONG = (decimal)droplongitude,
+                    NLOADID = LoadId
+                };
+                ExecuteCommand(_connStr, conn =>
+                {
+                    var query = connection.Query<Waypoint>(_commandText.PostWaypoint, dropwaypoint);
+                });
+            }
+            return 0;
         }
 
-       
+        public Client CheckClientUsernameExists(string SUSERNAME)
+        {
+            var pUser = ExecuteCommand<Client>(_connStr, conn =>
+                 conn.Query<Client>(_commandText.CheckClientUsernameExists, new { @SUSERNAME = SUSERNAME }).SingleOrDefault());
+            return pUser;
+        }
 
-        public Shipper GetShipperByUserName(string SUSERNAME)
+        public Shipper CheckShipperUsernameExists(string SUSERNAME)
         {
             var pUser = ExecuteCommand<Shipper>(_connStr, conn =>
-                 conn.Query<Shipper>(_commandText.GetShipperByUserName, new { @SUSERNAME = SUSERNAME }).SingleOrDefault());
+                 conn.Query<Shipper>(_commandText.CheckShipperUsernameExists, new { @SUSERNAME = SUSERNAME }).SingleOrDefault());
             return pUser;
         }
 
@@ -108,7 +185,24 @@ namespace TransportBE.Services
                  conn.Query<Shipper>(_commandText.LoginShipper, new { @SUSERNAME = SUSERNAME, @SPASSWORD= SPASSWORD}).SingleOrDefault());
             return pUser;
         }
-        
+
+        public void ClientRegister(Client entity)
+        {
+            ExecuteCommand(_connStr, conn =>
+            {
+                var query = conn.Query<Client>(_commandText.ClientRegister,
+                    new
+                    {
+                        SNAME = entity.sName,
+                        SADDRESS = entity.sAddress,                       
+                        SEMAIL = entity.sEmail,
+                        SPHONE = entity.sPhone,
+                        SUSERNAME = entity.sUsername,
+                        SPASSWORD = entity.sPassword
+                    });
+            });
+        }
+
         public void ShipperRegister(Shipper entity)
         {
             ExecuteCommand(_connStr, conn =>
@@ -151,19 +245,23 @@ namespace TransportBE.Services
             return query;
 
         }
-        public void AssignLoad(string map) 
-        {
-            string[] input = map.Split(",");
-             
-
-            int nShipperId = int.Parse(input[0]);
-            int nLoadId = int.Parse(input[1]);
+        public int AssignLoad(Load entity) 
+        {                         
 
             var query = ExecuteCommand(_connStr,
-                   conn => conn.Query<Load>(_commandText.AssignLoad, new {@NSHIPPERID = nShipperId, @NLOADID = nLoadId }));
-
+                   conn => conn.Query<int>(_commandText.AssignLoad, new {@NSHIPPERID = entity.NSHIPPERID, @NLOADID = entity.NLOADID }).SingleOrDefault());
+            int retValue = (int)query;
+            if (retValue == 0) 
+            {
+                return 1;
+            }
+            else 
+            {
+                return 0;
+            }
             
         }
+
         public List<Load> GetAvailableLoads()
         {
 
@@ -172,8 +270,27 @@ namespace TransportBE.Services
             return query;
 
         }
+        public void InsertUnknownCity(string sCityName)
+        {
+            ExecuteCommand<City>(_connStr, conn =>
+                 conn.Query<City>(_commandText.InsertUnknownCity, new { @SCITYNAME = sCityName}).SingleOrDefault());
+            
+        }
 
+        public void SetOrderStatusToGridUnknown(decimal nOrderId)
+        {
+            ExecuteCommand<Order>(_connStr, conn =>
+                 conn.Query<Order>(_commandText.SetOrderStatusToGridUnknown, new { @NORDERID = nOrderId }).SingleOrDefault());
 
+        }
+        public List<Waypoint> GetOrderRouteWithWayPoints(decimal nOrderId)
+        {
+
+            var query = ExecuteCommand(_connStr,
+                   conn => conn.Query<Waypoint>(_commandText.GetOrderRouteWithWayPoints, new { @NORDERID = nOrderId })).ToList();
+            return query;
+
+        }
 
         /*  public Shipper Authenticate(string username, string password)
           {
