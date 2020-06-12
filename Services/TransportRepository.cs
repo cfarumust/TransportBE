@@ -212,7 +212,7 @@ namespace TransportBE.Services
                     {
                         SNAME = entity.sName,
                         SADDRESS = entity.sAddress,
-                        NVEHICLEID = entity.nVehicleId,
+                        //NVEHICLEID = entity.nVehicleId,
                         SEMAIL = entity.sEmail,
                         SPHONE = entity.sPhone,                       
                         SUSERNAME = entity.sUserName,
@@ -245,6 +245,16 @@ namespace TransportBE.Services
             return query;
 
         }
+
+        public List<Load> GetLoadsByShipperId(decimal nShipperId)
+        {
+
+            var query = ExecuteCommand(_connStr,
+                   conn => conn.Query<Load>(_commandText.GetLoadsByShipperId, new { @NSHIPPERID = nShipperId })).ToList();
+            return query;
+
+        }
+
         public int AssignLoad(Load entity) 
         {                         
 

@@ -42,12 +42,15 @@ namespace TransportBE.Services
                                            "values (@SCITYNAME, '99', 'GERMANY') ";
         public string GetLoadsByOrderId => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
-                                           "NDROPLAT,NDROPLONG, SSTATUSID ,SGRIDIDPICKUP ," +
-                                           "SGRIDIDDROP,NLEGID,NISMULTIVEHICLELOAD " + "FROM LOADS Where NORDERID = @NORDERID";
+                                           "NDROPLAT,NDROPLONG, SSTATUSID " + "FROM LOADS Where NORDERID = @NORDERID";
+
+        public string GetLoadsByShipperId => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
+                                           "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
+                                           "NDROPLAT,NDROPLONG, SSTATUSID " + "FROM LOADS Where NSHIPPERID = @NSHIPPERID";
 
         public string GetAvailableLoads => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
-                                           "NDROPLAT,NDROPLONG, SSTATUSID " +
+                                           "NDROPLAT,NDROPLONG " +
                                            "FROM LOADS Where SSTATUSID = '2000'";
 
         public string AssignLoad => " update LOADS set SSTATUSID = '2001', NSHIPPERID = @NSHIPPERID  " +
@@ -63,8 +66,8 @@ namespace TransportBE.Services
 
         public string LoginClient => "select SUSERNAME, SPASSWORD, NCLIENTID from CLIENTS where SUSERNAME = @SUSERNAME and SPASSWORD=@SPASSWORD";
 
-        public string RegisterShipper => "Insert Into SHIPPER (SNAME, SADDRESS, SPHONE, SEMAIL, SUSERNAME, SPASSWORD, NVEHICLEID)" +
-            "Values(@SNAME, @SADDRESS,@SPHONE, @SEMAIL, @SUSERNAME, @SPASSWORD, @NVEHICLEID)";
+        public string RegisterShipper => "Insert Into SHIPPERS (SNAME, SADDRESS, SPHONE, SEMAIL, SUSERNAME, SPASSWORD) " +
+            "Values(@SNAME, @SADDRESS,@SPHONE, @SEMAIL, @SUSERNAME, @SPASSWORD )";
 
         public string GetOrdersByClient => "select NORDERID, SADDRESSPICKUP, SADDRESSDROP, NBOXID, NBOXCOUNT, DTPICKUPDATE, DTORDEREDON,  " +
                                                    "DTDROPDATE, SSTATUSID, NDISTANCE " +

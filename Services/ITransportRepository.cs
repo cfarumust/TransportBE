@@ -20,5 +20,6 @@ namespace TransportBE.Services
 
         Shipper CheckShipperUsernameExists(string SUSERNAME);
         void ClientRegister(Client entity);
+        List<Load> GetLoadsByShipperId(decimal nShipperId);
     }
 }

@@ -32,6 +32,14 @@ namespace TransportBE.Controllers
             return Ok(product);
         }
 
+        [HttpGet]
+        [Route("shipper/shipperid/{nShipperId}")]
+        public ActionResult<Load> GetLoadsByShipperId(decimal nShipperId)
+        {
+            var product = _transportRepository.GetLoadsByShipperId(nShipperId);
+            return Ok(product);
+        }
+
 
         [HttpGet]
         [Route("shipper/loads-available")]
@@ -40,6 +48,8 @@ namespace TransportBE.Controllers
             var product = _transportRepository.GetAvailableLoads();
             return Ok(product);
         }
+
+       
 
         [HttpPut]
         [Route("shipper/assign_to_load")]

@@ -43,7 +43,7 @@ namespace TransportBE.Controllers
             else
             {
                 var tokenString = GenerateJSONWebToken(authuser);
-                response = Ok(new { token = tokenString, success = true, nclientid = userFromRepo.nClientId });
+                response = Ok(new { token = tokenString, success = true, NCLIENTID = userFromRepo.nClientId });
                 return response;
             }
 
@@ -86,7 +86,7 @@ namespace TransportBE.Controllers
             {
                 _transportRepository.ClientRegister(model);
 
-                 return Ok();
+                 return Ok(new { success = true, info = "You have successfully registered."});
             }
             
         }

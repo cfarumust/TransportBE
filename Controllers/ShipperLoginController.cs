@@ -43,7 +43,7 @@ namespace TransportBE.Controllers
             else
             {
                 var tokenString = GenerateJSONWebToken(authuser);
-                response = Ok(new { token = tokenString, success = true, nShipperId=userFromRepo.nShipperId });
+                response = Ok(new { token = tokenString, success = true, NSHIPPERID=userFromRepo.nShipperId });
                 return response;
             }
 
@@ -74,7 +74,7 @@ namespace TransportBE.Controllers
 
             model.sUserName = model.sUserName.ToLower();
 
-            if (_transportRepository.CheckClientUsernameExists(model.sUserName) != null)
+            if (_transportRepository.CheckShipperUsernameExists(model.sUserName) != null)
             {
                 _UserExists = true;
                 //HttpStatusCode codeNotDefined = (HttpStatusCode)422;
@@ -86,7 +86,7 @@ namespace TransportBE.Controllers
             {
                 _transportRepository.ShipperRegister(model);
 
-                return Ok();
+                return Ok(new { success = true, info = "You have successfully registered." });
             }
 
         }
