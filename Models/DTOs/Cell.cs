@@ -9,5 +9,9 @@ namespace TransportBE.Models.DTOs
     {
         public int x { get; set; }
         public int y { get; set; }
+
+        
+        
     }
+   
 }

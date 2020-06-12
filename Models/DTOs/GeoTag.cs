@@ -7,7 +7,7 @@ namespace TransportBE.Models.DTOs
 {
     public class GeoTag
     {
-        double latitude { get; set; }
-        double longitude { get; set; }
+        public double latitude { get; set; }
+        public double longitude { get; set; }
     }
 }

@@ -19,8 +19,7 @@ namespace TransportBE.Models.DTOs
         public decimal NDROPLONG { get; set; }
         public decimal NLEGID { get; set; }
         public decimal NISMULTIVEHICLELOAD{ get; set; }
-        public string SGRIDIDPICKUP { get; set; }
-        public string SGRIDIDDROP { get; set; }
+        
         public decimal NSHIPPERID { get; set; }
         public string SSTATUSID { get; set; }
     }

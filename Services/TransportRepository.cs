@@ -101,9 +101,9 @@ namespace TransportBE.Services
                     var DropLocation = locationService.GetAddressFromLatLang(dropLatitude, dropLongitude);
                     string destination = DropLocation.City.ToString();
 
-                    InsertUnknownCity(source);
-                    InsertUnknownCity(destination);
-                    SetOrderStatusToGridUnknown(id);
+                    //InsertUnknownCity(source);
+                    //InsertUnknownCity(destination);
+                    //SetOrderStatusToGridUnknown(id);
                     
                     return 1;
                 }
