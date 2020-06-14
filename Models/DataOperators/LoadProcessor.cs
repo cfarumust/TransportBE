@@ -18,6 +18,9 @@ namespace TransportBE.Models.DataOperators
             double dropLatitude =    (double)order.NDROPLAT;
             double dropLongitude =   (double)order.NDROPLONG;
 
+            DateTime pickupDateTime = new DateTime();
+            pickupDateTime = order.DTPICKUPDATE;
+
             List<GeoTag> RouteWithWaypoints = new List<GeoTag>();
            
             List<Load> GeneratedLoads = new List<Load>();
@@ -27,7 +30,7 @@ namespace TransportBE.Models.DataOperators
 
             var PickUpLocation = locationService.GetAddressFromLatLang(pickUpLatitude, pickUpLongitude);
             string sourceAddress = PickUpLocation.Address.ToString();
-
+            
             var DropLocation = locationService.GetAddressFromLatLang(dropLatitude, dropLongitude);
             string destinationAddress = DropLocation.Address.ToString();
 
@@ -60,7 +63,13 @@ namespace TransportBE.Models.DataOperators
                                 SADDRESSPICKUP = sourceAddress,
                                 SADDRESSDROP = destinationAddress,
                                 NLEGID = trip,
-                                NISMULTIVEHICLELOAD = i
+                                NISMULTIVEHICLELOAD = i,
+                                NPICKUPLONG = (decimal)pickUpLongitude,
+                                NPICKUPLAT = (decimal)pickUpLatitude,
+                                NDROPLONG = (decimal)dropLongitude,
+                                NDROPLAT = (decimal)dropLatitude, 
+                                FISCONNECTING = "false",
+                                DTPICKUPDATE = order.DTPICKUPDATE
 
                             };
                             boxesLeft = 0;
@@ -78,7 +87,13 @@ namespace TransportBE.Models.DataOperators
                         SADDRESSPICKUP = sourceAddress,
                         SADDRESSDROP = destinationAddress,
                         NLEGID = trip,
-                        NISMULTIVEHICLELOAD = 1
+                        NISMULTIVEHICLELOAD = 1,
+                        NPICKUPLONG = (decimal)pickUpLongitude,
+                        NPICKUPLAT = (decimal)pickUpLatitude,
+                        NDROPLONG = (decimal)dropLongitude,
+                        NDROPLAT = (decimal)dropLatitude,
+                        FISCONNECTING = "false",
+                        DTPICKUPDATE = order.DTPICKUPDATE
 
                     };
                     GeneratedLoads.Add(load);
@@ -94,7 +109,7 @@ namespace TransportBE.Models.DataOperators
                 if (hopCount != 0) 
                 {
                     int trips = hopCount - 1;
-                 
+                    DateTime pickupDate = new DateTime();
 
                     if (BoxCount > MaxBoxCount)
                     {
@@ -104,9 +119,10 @@ namespace TransportBE.Models.DataOperators
                         {
                             int boxesLeft = (int)(order.NBOXCOUNT - (boxesPerVehicle * vehiclesRequired));
                             //load per vehicle
-
+                           
                             for (int i = 1; i <= vehiclesRequired; i++)
                             {
+
                                 GeoTag pick = RouteWithWaypoints[trip];
                                 GeoTag drop = RouteWithWaypoints[trip+1];
                                 var PickUpLoc = locationService.GetAddressFromLatLang(pick.latitude, pick.longitude);
@@ -115,28 +131,43 @@ namespace TransportBE.Models.DataOperators
                                 var DropLoc = locationService.GetAddressFromLatLang(drop.latitude, drop.longitude);
                                 string dropAdd = DropLoc.City.ToString();
 
+                                pickupDate = pickupDateTime.AddHours(RouteWithWaypoints[trip + 1].hours).AddMinutes(RouteWithWaypoints[trip + 1].minutes);
+
+                                if (trip == 0) 
+                                {
+                                    pickupDate = order.DTPICKUPDATE;
+                                }
                                 Load load = new Load
                                 {
                                     NORDERID = id,
-                                    NBOXCOUNT = boxesPerVehicle+boxesLeft,
+                                    NBOXCOUNT = boxesPerVehicle + boxesLeft,
                                     NBOXID = order.NBOXID,
                                     SADDRESSPICKUP = sourceAdd,
                                     SADDRESSDROP = dropAdd,
                                     NLEGID = trip,
-                                    NISMULTIVEHICLELOAD = i 
-
+                                    NISMULTIVEHICLELOAD = i,
+                                    NPICKUPLONG = (decimal)pick.longitude,
+                                    NPICKUPLAT = (decimal)pick.latitude,
+                                    NDROPLONG = (decimal)drop.longitude,
+                                    NDROPLAT = (decimal)drop.latitude,
+                                    FISCONNECTING = "true",
+                                    DTPICKUPDATE = pickupDate
                                 };
+                               
+
                                 boxesLeft = 0;
                                 boxesAllocated +=load.NBOXCOUNT;
                                 GeneratedLoads.Add(load);
                                 
                                 //boxesAllocatedTovehicles += boxesPerVehicle;
                             }
-                            
+                            pickupDateTime = pickupDate;
+
                         }
                     }
                     else
                     {
+                        DateTime pickupDate1 = new DateTime();
 
                         for (int trip = 0; trip < trips; trip++)
                         {
@@ -149,6 +180,12 @@ namespace TransportBE.Models.DataOperators
                             var DropLoc = locationService.GetAddressFromLatLang(drop.latitude, drop.longitude);
                             string dropAdd = DropLoc.City.ToString();
 
+                            pickupDate = pickupDateTime.AddHours(RouteWithWaypoints[trip + 1].hours).AddMinutes(RouteWithWaypoints[trip + 1].minutes);
+
+                            if (trip == 0)
+                            {
+                                pickupDate = order.DTPICKUPDATE;
+                            }
                             Load load = new Load
                             {
                                 NORDERID = id,
@@ -157,12 +194,20 @@ namespace TransportBE.Models.DataOperators
                                 SADDRESSPICKUP = sourceAdd,
                                 SADDRESSDROP = dropAdd,
                                 NLEGID = trip,
-                                NISMULTIVEHICLELOAD = 1
+                                NISMULTIVEHICLELOAD = 1,
+                                NPICKUPLONG = (decimal)pick.longitude,
+                                NPICKUPLAT = (decimal)pick.latitude,
+                                NDROPLONG = (decimal)drop.longitude,
+                                NDROPLAT = (decimal)drop.latitude,
+                                FISCONNECTING = "true",
+                                DTPICKUPDATE = pickupDate1
 
                             };
+                            
                             boxesLeft = 0;
                             GeneratedLoads.Add(load);
                         }
+                        pickupDateTime = pickupDate1;
                     }
                 }
                 else
@@ -222,6 +267,7 @@ namespace TransportBE.Models.DataOperators
                 double distanceLeft = (double)distance;
 
                 GeoTag start = source;
+                
 
                 while ((coveredDistance < (double)distance) ) 
                 {
@@ -235,18 +281,29 @@ namespace TransportBE.Models.DataOperators
                     
                     var DropLocation = locationService.GetAddressFromLatLang(coordinates.latitude, coordinates.longitude);
 
-                    var directions = locationService.GetDirections(PickUpLocation, DropLocation);
-                    start = coordinates;
-                    String[] split = directions.Distance.Split(" ");
+                    var directionsFromCurrentHopToDestination = locationService.GetDirections(PickUpLocation, DestinationAddress);
+                    String[] distanceToDest = directionsFromCurrentHopToDestination.Distance.Split(" ");
 
-                    var directionsToDestination = locationService.GetDirections(PickUpLocation, DestinationAddress);
-                    String[] distanceToDest = directionsToDestination.Distance.Split(" ");
+
+                    String[] timefromhop = directionsFromCurrentHopToDestination.Duration.Split(" ");
+                    int hoursfromhop = int.Parse(timefromhop[0]);
+                    int minutesfromhop = int.Parse(timefromhop[2]);
+
+                    var directionToNextHop = locationService.GetDirections(PickUpLocation, DropLocation);
+                    string duration = directionToNextHop.Duration;
+                    
+                    String[] split = directionToNextHop.Distance.Split(" ");
+                    String[] time = duration.Split(" ");
+                    coordinates.hours = int.Parse(time[0]);
+                    coordinates.minutes = int.Parse(time[2]);
+
+                    
 
                     distanceLeft = Double.Parse(distanceToDest[0]);
 
                     coveredDistance += Double.Parse(split[0]);
+                    start = coordinates;
 
-                    
                     if (distanceLeft > 150) 
                     {
                         hopPoints.Add(coordinates);

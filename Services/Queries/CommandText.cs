@@ -28,9 +28,9 @@ namespace TransportBE.Services
                                    "Values ( @DTPICKUPDATE, @DTDROPDATE, @NCLIENTID, @sAddressPickUp, @sAddressDrop," +
                                    "@NBOXID, @NBOXCOUNT, @NDISTANCE, @NPICKUPLAT, @NPICKUPLONG, @NDROPLAT, @NDROPLONG ); SELECT CAST(SCOPE_IDENTITY() as int)";
 
-        public string PostLoad => "Insert into Loads (NISMULTIVEHICLELOAD, NLEGID, SADDRESSPICKUP, SADDRESSDROP, NBOXCOUNT, NBOXID, NORDERID )" +
+        public string PostLoad => "Insert into Loads (NISMULTIVEHICLELOAD, NLEGID, SADDRESSPICKUP, SADDRESSDROP, NBOXCOUNT, NBOXID, NORDERID, FISCONNECTING, NPICKUPLONG, NPICKUPLAT, NDROPLONG, NDROPLAT, DTPICKUPDATE )" +
              "OUTPUT INSERTED.NLOADID " +
-            " Values (@NISMULTIVEHICLELOAD, @NLEGID, @SADDRESSPICKUP, @SADDRESSDROP, @NBOXCOUNT, @NBOXID, @NORDERID ); SELECT CAST(SCOPE_IDENTITY() as int)";
+            " Values (@NISMULTIVEHICLELOAD, @NLEGID, @SADDRESSPICKUP, @SADDRESSDROP, @NBOXCOUNT, @NBOXID, @NORDERID, @FISCONNECTING , @NPICKUPLONG, @NPICKUPLAT, @NDROPLONG, @NDROPLAT, @DTPICKUPDATE); SELECT CAST(SCOPE_IDENTITY() as int)";
         public string PostWaypoint => "Insert into Waypoints (NLOADID, NORDERID, NLEGID, NLAT, NLONG)" +
             " Values (@NLOADID, @NORDERID, @NLEGID, @NLAT, @NLONG) ";
 
@@ -39,15 +39,15 @@ namespace TransportBE.Services
                 
         public string GetLoadsByOrderId => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
-                                           "NDROPLAT,NDROPLONG, SSTATUSID " + "FROM LOADS Where NORDERID = @NORDERID";
+                                           "NDROPLAT,NDROPLONG, SSTATUSID, FISCONNECTING, NLEGID " + "FROM LOADS Where NORDERID = @NORDERID";
 
         public string GetLoadsByShipperId => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
-                                           "NDROPLAT,NDROPLONG, SSTATUSID " + "FROM LOADS Where NSHIPPERID = @NSHIPPERID";
+                                           "NDROPLAT,NDROPLONG, SSTATUSID, FISCONNECTING, DTPICKUPDATE, NLEGID " + "FROM LOADS Where NSHIPPERID = @NSHIPPERID";
 
         public string GetAvailableLoads => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
-                                           "NDROPLAT,NDROPLONG " +
+                                           "NDROPLAT,NDROPLONG, FISCONNECTING,  DTPICKUPDATE, NLEGID  " +
                                            "FROM LOADS Where SSTATUSID = '2000'";
 
         public string AssignLoad => " update LOADS set SSTATUSID = '2001', NSHIPPERID = @NSHIPPERID  " +

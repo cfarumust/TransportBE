@@ -22,5 +22,9 @@ namespace TransportBE.Models.DTOs
         
         public decimal NSHIPPERID { get; set; }
         public string SSTATUSID { get; set; }
+
+        public string FISCONNECTING { get; set;  }
+
+        public DateTime DTPICKUPDATE { get; set; }
     }
 }

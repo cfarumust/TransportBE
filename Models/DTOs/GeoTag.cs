@@ -9,5 +9,8 @@ namespace TransportBE.Models.DTOs
     {
         public double latitude { get; set; }
         public double longitude { get; set; }
+        public int hours { get; set; }
+        public int minutes { get; set; }
+
     }
 }
