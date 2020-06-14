@@ -79,7 +79,8 @@ namespace TransportBE.Controllers
                 _UserExists = true;
                 //HttpStatusCode codeNotDefined = (HttpStatusCode)422;
                 //return Content(codeNotDefined, "message to be sent in response body");
-                return BadRequest("Username is already taken");
+                return Ok(new { success = false, usernameexists = true, info = "Username is already taken" });
+                
 
             }
             else

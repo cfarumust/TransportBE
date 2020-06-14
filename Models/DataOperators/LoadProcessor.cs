@@ -40,13 +40,14 @@ namespace TransportBE.Models.DataOperators
 
             int vehiclesRequired = (int)Math.Ceiling(BoxCount / MaxBoxCount);
             int boxesPerVehicle = (int)(BoxCount / vehiclesRequired);
-            int boxesLeft = (int)(order.NBOXCOUNT - (boxesPerVehicle*vehiclesRequired));
+            
 
             if (distance < 300)
             {
   
                 if (BoxCount > MaxBoxCount)
                 {
+                    int boxesLeft = (int)(order.NBOXCOUNT - (boxesPerVehicle * vehiclesRequired));
                     int trip = 0;
                     for (int i = 1; i <= vehiclesRequired; i++)
                     {
@@ -86,7 +87,7 @@ namespace TransportBE.Models.DataOperators
             }
             else
             {
-                
+                decimal boxesAllocated = 0;
                 //hops = HopGenerator.GenerateHopsForTrip(pickUpLatitude, pickUpLongitude, dropLatitude, dropLongitude);
                 int hopCount = RouteWithWaypoints.Count();
                 
@@ -97,11 +98,13 @@ namespace TransportBE.Models.DataOperators
 
                     if (BoxCount > MaxBoxCount)
                     {
+                        
                         //generate trips 
                         for (int trip = 0; trip < trips; trip++)
                         {
+                            int boxesLeft = (int)(order.NBOXCOUNT - (boxesPerVehicle * vehiclesRequired));
                             //load per vehicle
-                            
+
                             for (int i = 1; i <= vehiclesRequired; i++)
                             {
                                 GeoTag pick = RouteWithWaypoints[trip];
@@ -124,15 +127,20 @@ namespace TransportBE.Models.DataOperators
 
                                 };
                                 boxesLeft = 0;
+                                boxesAllocated +=load.NBOXCOUNT;
                                 GeneratedLoads.Add(load);
+                                
                                 //boxesAllocatedTovehicles += boxesPerVehicle;
                             }
+                            
                         }
                     }
                     else
                     {
+
                         for (int trip = 0; trip < trips; trip++)
                         {
+                            int boxesLeft = (int)(order.NBOXCOUNT - (boxesPerVehicle * vehiclesRequired));
                             GeoTag pick = RouteWithWaypoints[trip];
                             GeoTag drop = RouteWithWaypoints[trip + 1];
                             var PickUpLoc = locationService.GetAddressFromLatLang(pick.latitude, pick.longitude);

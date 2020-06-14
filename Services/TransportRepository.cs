@@ -122,7 +122,7 @@ namespace TransportBE.Services
                     });
                     
 
-                    var Location = locationService.GetLatLongFromAddress(genLoad.SADDRESSPICKUP + ", Germany");
+                    var Location = locationService.GetLatLongFromAddress(genLoad.SADDRESSPICKUP );
                     double latitude = Location.Latitude;
                     double longitude = Location.Longitude;
 
@@ -146,7 +146,7 @@ namespace TransportBE.Services
                     
 
                 }
-                var dropLocation = locationService.GetLatLongFromAddress(currentOrder.SADDRESSDROP + ", Germany");
+                var dropLocation = locationService.GetLatLongFromAddress(currentOrder.SADDRESSDROP );
                 double droplatitude = dropLocation.Latitude;
                 double droplongitude = dropLocation.Longitude;
                 Waypoint dropwaypoint = new Waypoint
@@ -255,6 +255,24 @@ namespace TransportBE.Services
 
         }
 
+        
+        public int SetLoadStatusToDelivered(Load entity)
+        {
+
+            var query = ExecuteCommand(_connStr,
+                   conn => conn.Query<int>(_commandText.SetLoadStatusToDelivered, new { @NSHIPPERID = entity.NSHIPPERID, @NLOADID = entity.NLOADID }).SingleOrDefault());
+            int retValue = (int)query;
+            if (retValue == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return 0;
+            }
+
+        }
+
         public int AssignLoad(Load entity) 
         {                         
 
@@ -280,19 +298,8 @@ namespace TransportBE.Services
             return query;
 
         }
-        public void InsertUnknownCity(string sCityName)
-        {
-            ExecuteCommand<City>(_connStr, conn =>
-                 conn.Query<City>(_commandText.InsertUnknownCity, new { @SCITYNAME = sCityName}).SingleOrDefault());
-            
-        }
+        
 
-        public void SetOrderStatusToGridUnknown(decimal nOrderId)
-        {
-            ExecuteCommand<Order>(_connStr, conn =>
-                 conn.Query<Order>(_commandText.SetOrderStatusToGridUnknown, new { @NORDERID = nOrderId }).SingleOrDefault());
-
-        }
         public List<Waypoint> GetOrderRouteWithWayPoints(decimal nOrderId)
         {
 

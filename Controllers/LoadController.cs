@@ -49,7 +49,6 @@ namespace TransportBE.Controllers
             return Ok(product);
         }
 
-       
 
         [HttpPut]
         [Route("shipper/assign_to_load")]
@@ -65,6 +64,26 @@ namespace TransportBE.Controllers
             else
             {
                 var response = Ok(new { entity, success = false, info = "This Trip is no longer available or has already been undertaken" });
+                return response;
+            }
+
+        }
+
+
+        [HttpPut]
+        [Route("shipper/loadcompleted")]
+        public ActionResult<Load> SetLoadStatusToDelivered(Load entity)
+        {
+            int fail = _transportRepository.SetLoadStatusToDelivered(entity);
+
+            if (fail == 0)
+            {
+                var response = Ok(new { entity, success = true, info = "You have succesfully completed the trip. Thank you" });
+                return response;
+            }
+            else
+            {
+                var response = Ok(new { success = false, info = "Please try again" });
                 return response;
             }
                       

@@ -15,6 +15,8 @@ namespace TransportBE.Services
         List<Load> GetLoadsByOrderId(decimal nOrderId);
         List<Load> GetAvailableLoads();
         int AssignLoad(Load entity);
+
+        int SetLoadStatusToDelivered(Load entity);
         List<Waypoint> GetOrderRouteWithWayPoints(decimal nOrderId);
         Client CheckClientUsernameExists(string SUSERNAME);
 

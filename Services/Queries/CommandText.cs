@@ -36,10 +36,7 @@ namespace TransportBE.Services
 
         public string GetOrderRouteWithWayPoints => "select NLAT, NLONG, NLEGID from Waypoints where NORDERID = @NORDERID order by NLEGID asc";
 
-        public string SetOrderStatusToGridUnknown => "update ORDERS set SSTATUSID = '3000' where NORDERID = @NORDERID";
-
-        public string InsertUnknownCity => "insert into CITIES (SCITYNAME, SGRIDID, SCOUNTRYNAME) " +
-                                           "values (@SCITYNAME, '99', 'GERMANY') ";
+                
         public string GetLoadsByOrderId => "select NLOADID, SADDRESSPICKUP, SADDRESSDROP, " +
                                            "NBOXCOUNT, NBOXID, NPICKUPLAT, NPICKUPLONG, NORDERID, " +
                                            "NDROPLAT,NDROPLONG, SSTATUSID " + "FROM LOADS Where NORDERID = @NORDERID";
@@ -56,6 +53,10 @@ namespace TransportBE.Services
         public string AssignLoad => " update LOADS set SSTATUSID = '2001', NSHIPPERID = @NSHIPPERID  " +
                                     " OUTPUT INSERTED.NLOADID " +
                                     " where NLOADID = @NLOADID and SSTATUSID = '2000'; " +
+                                    " SELECT CAST(SCOPE_IDENTITY() as int)";
+        public string SetLoadStatusToDelivered => " update LOADS set SSTATUSID = '2003' " +
+                                    " OUTPUT INSERTED.NLOADID " +
+                                    " where NLOADID = @NLOADID and SSTATUSID = '2001' and NSHIPPERID= @NSHIPPERID; " +
                                     " SELECT CAST(SCOPE_IDENTITY() as int)";
         public string CheckShipperUsernameExists => "select * from SHIPPERS where SUSERNAME = @SUSERNAME";
 
