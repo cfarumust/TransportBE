@@ -25,12 +25,12 @@ namespace TransportBE.Services
         public string PostOrder => "Insert Into  ORDERS ( DTPICKUPDATE, DTDROPDATE, NCLIENTID, SADDRESSPICKUP, " +
                                    "SADDRESSDROP, NBOXID, NBOXCOUNT, NDISTANCE, NPICKUPLAT, NPICKUPLONG, NDROPLAT, NDROPLONG) " +
                                    "OUTPUT INSERTED.NORDERID " +
-                                   "Values ( @DTPICKUPDATE, @DTDROPDATE, @NCLIENTID, @sAddressPickUp, @sAddressDrop," +
+                                   "Values ( (CONVERT(datetime, @DTPICKUPDATE,127)), (CONVERT(datetime, @DTDROPDATE,127)) , @NCLIENTID, @sAddressPickUp, @sAddressDrop," +
                                    "@NBOXID, @NBOXCOUNT, @NDISTANCE, @NPICKUPLAT, @NPICKUPLONG, @NDROPLAT, @NDROPLONG ); SELECT CAST(SCOPE_IDENTITY() as int)";
 
         public string PostLoad => "Insert into Loads (NISMULTIVEHICLELOAD, NLEGID, SADDRESSPICKUP, SADDRESSDROP, NBOXCOUNT, NBOXID, NORDERID, FISCONNECTING, NPICKUPLONG, NPICKUPLAT, NDROPLONG, NDROPLAT, DTPICKUPDATE )" +
              "OUTPUT INSERTED.NLOADID " +
-            " Values (@NISMULTIVEHICLELOAD, @NLEGID, @SADDRESSPICKUP, @SADDRESSDROP, @NBOXCOUNT, @NBOXID, @NORDERID, @FISCONNECTING , @NPICKUPLONG, @NPICKUPLAT, @NDROPLONG, @NDROPLAT, @DTPICKUPDATE); SELECT CAST(SCOPE_IDENTITY() as int)";
+            " Values (@NISMULTIVEHICLELOAD, @NLEGID, @SADDRESSPICKUP, @SADDRESSDROP, @NBOXCOUNT, @NBOXID, @NORDERID, @FISCONNECTING , @NPICKUPLONG, @NPICKUPLAT, @NDROPLONG, @NDROPLAT, (CONVERT(datetime, @DTPICKUPDATE,127))); SELECT CAST(SCOPE_IDENTITY() as int)";
         public string PostWaypoint => "Insert into Waypoints (NLOADID, NORDERID, NLEGID, NLAT, NLONG)" +
             " Values (@NLOADID, @NORDERID, @NLEGID, @NLAT, @NLONG) ";
 
@@ -56,7 +56,7 @@ namespace TransportBE.Services
                                     " SELECT CAST(SCOPE_IDENTITY() as int)";
         public string SetLoadStatusToDelivered => " update LOADS set SSTATUSID = '2003' " +
                                     " OUTPUT INSERTED.NLOADID " +
-                                    " where NLOADID = @NLOADID and SSTATUSID = '2001' and NSHIPPERID= @NSHIPPERID; " +
+                                    " where NLOADID = @NLOADID and SSTATUSID = '2001' and NSHIPPERID = @NSHIPPERID; " +
                                     " SELECT CAST(SCOPE_IDENTITY() as int)";
         public string CheckShipperUsernameExists => "select * from SHIPPERS where SUSERNAME = @SUSERNAME";
 

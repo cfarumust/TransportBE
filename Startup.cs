@@ -12,6 +12,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using TransportBE.Services;
 using TransportBE.Models.DataOperators;
+using Microsoft.AspNetCore.Authentication;
+
 namespace TransportBE
 {
     public class Startup
@@ -29,7 +31,7 @@ namespace TransportBE
             
             services.AddTransient<ITransportRepository, TransportRepository>();
             services.AddTransient<CommandText, CommandText>();
-
+            
             services.AddMvc(options =>
             {
                 options.ReturnHttpNotAcceptable = true;
@@ -38,6 +40,7 @@ namespace TransportBE
             services.AddControllers();
             services.Configure<ConnectionConfig>(Configuration.GetSection("ConnectionStrings"));
             services.AddTokenAuthentication(Configuration);
+            services.Configure<IISServerOptions>(options => { options.AutomaticAuthentication = false; });
             
 
         }

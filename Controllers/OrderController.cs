@@ -45,7 +45,7 @@ namespace TransportBE.Controllers
         public ActionResult PostOrder(Order entity)
         {
            int fail = _transportRepository.PostOrder(entity);
-            
+            System.Diagnostics.Debug.WriteLine(entity);
             if (fail == 0) 
             {
                 var response = Ok(new { entity, success = true, info = "Order placed" });
@@ -54,6 +54,7 @@ namespace TransportBE.Controllers
             else 
             {
                 var response = Ok(new { entity, success = false, info = "Service not available in this area. Please contact Support." });
+                
                 return response;
             }
             

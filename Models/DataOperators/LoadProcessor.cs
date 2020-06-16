@@ -167,7 +167,7 @@ namespace TransportBE.Models.DataOperators
                     }
                     else
                     {
-                        DateTime pickupDate1 = new DateTime();
+                        DateTime pickupDate1 = pickupDate;
 
                         for (int trip = 0; trip < trips; trip++)
                         {
@@ -180,7 +180,7 @@ namespace TransportBE.Models.DataOperators
                             var DropLoc = locationService.GetAddressFromLatLang(drop.latitude, drop.longitude);
                             string dropAdd = DropLoc.City.ToString();
 
-                            pickupDate = pickupDateTime.AddHours(RouteWithWaypoints[trip + 1].hours).AddMinutes(RouteWithWaypoints[trip + 1].minutes);
+                            pickupDate1 = pickupDateTime.AddHours(RouteWithWaypoints[trip + 1].hours).AddMinutes(RouteWithWaypoints[trip + 1].minutes);
 
                             if (trip == 0)
                             {

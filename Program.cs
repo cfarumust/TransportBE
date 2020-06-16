@@ -13,6 +13,7 @@ namespace TransportBE
     {
         public static void Main(string[] args)
         {
+            
             CreateHostBuilder(args).Build().Run();
         }
 
@@ -21,6 +22,12 @@ namespace TransportBE
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                })
+            .ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddTraceSource("Information, ActivityTracing");
+            });
     }
 }
